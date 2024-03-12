@@ -82,7 +82,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                 itemCount: Foods.foodList.length,
                 itemBuilder: (context, index) {
                   return Ordercard(
-                    isHistory: true,
+                    isHistory: false,
                     status: "Accept",
                   );
                 }),
@@ -90,7 +90,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                 itemCount: Foods.foodList.length,
                 itemBuilder: (context, index) {
                   return Ordercard(
-                    isHistory: true,
+                    isHistory: false,
                     status: "Delivered",
                   );
                 }),
