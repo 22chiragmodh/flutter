@@ -16,7 +16,10 @@ class TranslationsApp extends Translations {
           "Paneer Curry": "Paneer Curry",
           "Chicken Kadhai": "Chicken Kadhai",
           "Chicken mughlai": "Chicken mughlai",
-          "Chicken Afghani": "Chicken Afghani"
+          "Chicken Afghani": "Chicken Afghani",
+          "Upcoming": "Upcoming",
+          "Accepted": "Accepted",
+          "Ready": "Ready",
         },
         'hi_IN': {
           'Online': 'ऑनलाइन',
@@ -31,7 +34,10 @@ class TranslationsApp extends Translations {
           "Paneer Curry": "पनीर करी",
           "Chicken Kadhai": "चिकन कढ़ाई",
           "Chicken mughlai": "चिकन मुगलई",
-          "Chicken Afghani": "चिकन अफगानी"
+          "Chicken Afghani": "चिकन अफगानी",
+          "Upcoming": "आनेवाला",
+          "Accepted": "स्वीकृत",
+          "Ready": "तैयार",
         }
       };
 }

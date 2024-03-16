@@ -17,4 +17,6 @@ class MenuContainer {
 class OrderContainer {
   static Color selected_tabColor = const Color(0xFFFF385C);
   static Color unselected_tabColor = const Color(0xFF5E5E5E);
+  static Color orderModeColor1 = const Color(0xFF008A05);
+  static Color orderModeColor2 = const Color(0xFF004CC4);
 }

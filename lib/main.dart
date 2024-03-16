@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:foodcafe/src/features/orderlengthProvider.dart';
 import 'package:foodcafe/src/features/translations.dart';
 import 'package:foodcafe/src/screens/home_screen.dart';
 import 'package:foodcafe/src/screens/main_screen.dart';
 import 'package:foodcafe/src/screens/menu_screen.dart';
 import 'package:foodcafe/src/utils/color.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -20,14 +22,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-        translations: TranslationsApp(),
-        locale: Locale('en', 'US'),
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          fontFamily: 'SF Pro',
-          scaffoldBackgroundColor: MenuContainer.background,
-        ),
-        home: MainScreen());
+    return ChangeNotifierProvider(
+      create: (context) => OrderLengthNotifier(),
+      child: GetMaterialApp(
+          translations: TranslationsApp(),
+          locale: Locale('en', 'US'),
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            fontFamily: 'SF Pro',
+            scaffoldBackgroundColor: MenuContainer.background,
+          ),
+          home: MainScreen()),
+    );
   }
 }

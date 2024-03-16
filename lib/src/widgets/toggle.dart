@@ -1,16 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
+import 'package:foodcafe/src/features/apiConstants.dart';
 import 'package:foodcafe/src/utils/color.dart';
+import 'package:http/http.dart' as http;
 
 class ToggleSwitch extends StatefulWidget {
-  bool? status;
-  ToggleSwitch({super.key, required this.status});
+  bool status;
+  String? itemId;
+  ToggleSwitch({super.key, required this.status, this.itemId});
 
   @override
   State<ToggleSwitch> createState() => _ToggleSwitchState();
 }
 
 class _ToggleSwitchState extends State<ToggleSwitch> {
+  Future<void> updateMenu(bool updateStatus) async {
+    try {
+      final response = await http.put(
+          Uri.parse(
+              "${ApiConstants.baseUrl}/menu/update-status/${widget.itemId}"),
+          headers: {
+            'Authorization': 'Bearer ${ApiConstants.authToken}',
+          },
+          body: {
+            "isAvailable": "$updateStatus"
+          });
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Menu updated Successfully")));
+      }
+    } catch (e) {
+      return Future.error(e.toString());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -31,11 +54,12 @@ class _ToggleSwitchState extends State<ToggleSwitch> {
             showOnOff: false,
             valueFontSize: 14.0,
             toggleSize: 35.0,
-            value: widget.status!,
+            value: widget.status,
             borderRadius: 30.0,
             padding: 8.0,
             // showOnOff: true,
-            onToggle: (val) {
+            onToggle: (val) async {
+              await updateMenu(val);
               setState(() {
                 widget.status = val;
               });

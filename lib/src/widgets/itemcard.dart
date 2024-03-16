@@ -6,13 +6,19 @@ class ItemCard extends StatelessWidget {
   final String imgUrl;
   final String title;
   final String description;
-  final int price;
+  final double price;
+  final bool isAvailable;
+  final bool isVeg;
+  final String id;
   const ItemCard(
       {super.key,
       required this.imgUrl,
       required this.title,
       required this.description,
-      required this.price});
+      required this.price,
+      required this.isAvailable,
+      required this.isVeg,
+      required this.id});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +44,7 @@ class ItemCard extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
                       image: DecorationImage(
-                        image: AssetImage(imgUrl),
+                        image: NetworkImage(imgUrl),
                         fit: BoxFit.fill,
                       )),
                 ),
@@ -49,7 +55,9 @@ class ItemCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Image.asset("assets/images/nonveg.png"),
+                        isVeg
+                            ? Image.asset("assets/images/veg.png")
+                            : Image.asset("assets/images/nonveg.png"),
                         Text(
                           title,
                           style: TextStyle(
@@ -66,12 +74,12 @@ class ItemCard extends StatelessWidget {
                             color: Color(0xFF5E5E5E),
                             fontSize: 10,
                             fontFamily: 'SF Pro',
-                            fontWeight: FontWeight.w300,
+                            fontWeight: FontWeight.w500,
                             height: 0,
                           ),
                         ),
                         Text(
-                          "₹$price",
+                          "₹ 300",
                           style: TextStyle(
                             color: Color(0xFF222222),
                             fontSize: 14,
@@ -90,7 +98,8 @@ class ItemCard extends StatelessWidget {
               width: 66,
               height: 60,
               child: ToggleSwitch(
-                status: false,
+                itemId: id,
+                status: isAvailable,
               ))
         ],
       ),

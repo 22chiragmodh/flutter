@@ -3,8 +3,8 @@ import 'package:foodcafe/src/food.dart';
 import 'package:get/get.dart';
 
 class OrderItemCard extends StatelessWidget {
-  final int index;
-  const OrderItemCard({super.key, required this.index});
+  final Map<String, dynamic> items;
+  const OrderItemCard({super.key, required this.items});
 
   @override
   Widget build(BuildContext context) {
@@ -18,38 +18,15 @@ class OrderItemCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                height: 20,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 4, vertical: 4.60),
-                clipBehavior: Clip.antiAlias,
-                decoration: ShapeDecoration(
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(width: 1.25, color: Color(0xFFC13515)),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 10.80,
-                      height: 10.80,
-                      decoration: ShapeDecoration(
-                        color: Color(0xFFC13515),
-                        shape: OvalBorder(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              items['isVeg']
+                  ? Image.asset("assets/images/veg.png")
+                  : Image.asset("assets/images/nonveg.png"),
               const SizedBox(width: 8),
               RichText(
                 text: TextSpan(
                   children: [
                     TextSpan(
-                      text: '1 X ',
+                      text: '${items['quantity']} X ',
                       style: TextStyle(
                         color: Color(0xFF222222),
                         fontSize: 16,
@@ -59,7 +36,7 @@ class OrderItemCard extends StatelessWidget {
                       ),
                     ),
                     TextSpan(
-                      text: '${Foods.foodList[index]['title']}'.tr,
+                      text: '${items['name']}'.tr,
                       style: TextStyle(
                         color: Color(0xFF222222),
                         fontSize: 16,
@@ -75,7 +52,7 @@ class OrderItemCard extends StatelessWidget {
           ),
         ),
         Text(
-          '\$20',
+          '₹ ${items['price']}',
           style: TextStyle(
             color: Color(0xFF5E5E5E),
             fontSize: 14,

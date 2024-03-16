@@ -1,11 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_switch/flutter_switch.dart';
-import 'package:foodcafe/src/food.dart';
-import 'package:foodcafe/src/utils/color.dart';
+
+import 'package:foodcafe/src/features/apiConstants.dart';
+import 'package:foodcafe/src/models/menuModel.dart';
+
 import 'package:foodcafe/src/widgets/itemcard.dart';
 import 'package:foodcafe/src/widgets/toggle.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
@@ -15,9 +18,34 @@ class MenuScreen extends StatefulWidget {
 }
 
 class _MenuScreenState extends State<MenuScreen> {
+  bool isDataloading = true;
+  List<MenuItem> menuList = [];
+  Future<void> getMenu() async {
+    try {
+      final response = await http
+          .get(Uri.parse("${ApiConstants.baseUrl}/menu/restro"), headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer ${ApiConstants.authToken}',
+      });
+      if (response.statusCode == 200) {
+        List<dynamic> decodedList = json.decode(response.body);
+        menuList = decodedList.map((menu) => MenuItem.fromJson(menu)).toList();
+        setState(() {
+          isDataloading = false;
+        });
+      }
+      print(menuList);
+    } catch (e) {
+      return Future.error(e.toString());
+    }
+  }
 
+  @override
+  void initState() {
+    super.initState();
+    getMenu();
+  }
 
-  
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -45,20 +73,26 @@ class _MenuScreenState extends State<MenuScreen> {
             ],
           ),
         ),
-        Container(
-          height: MediaQuery.of(context).size.height - 200,
-          // color: Colors.red,
-          child: ListView.builder(
-              itemCount: Foods.foodList.length,
-              itemBuilder: ((context, index) {
-                return ItemCard(
-                  imgUrl: Foods.foodList[index]['imageurl'],
-                  title: Foods.foodList[index]['title'].toString().tr,
-                  description: Foods.foodList[index]['description'],
-                  price: Foods.foodList[index]['price'],
-                );
-              })),
-        )
+        isDataloading
+            ? Center(
+                child: SizedBox(
+                    height: 15, width: 15, child: CircularProgressIndicator()))
+            : Container(
+                height: MediaQuery.of(context).size.height - 210,
+                // color: Colors.red,
+                child: ListView.builder(
+                    itemCount: menuList.length,
+                    itemBuilder: ((context, index) {
+                      return ItemCard(
+                          isVeg: menuList[index].isVeg,
+                          isAvailable: menuList[index].isAvailable,
+                          imgUrl: menuList[index].photo,
+                          title: menuList[index].name.toString().tr,
+                          description: menuList[index].category,
+                          price: menuList[index].price,
+                          id: menuList[index].id);
+                    })),
+              )
       ],
     );
   }

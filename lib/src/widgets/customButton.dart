@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
 
-class CustomButton extends StatelessWidget {
+class CustomButton extends StatefulWidget {
   final String status;
+  final Future<void> Function(String, String) onUpdate;
+  String orderid;
+  CustomButton(
+      {super.key,
+      required this.status,
+      required this.onUpdate,
+      required this.orderid});
 
-  const CustomButton({super.key, required this.status});
+  @override
+  State<CustomButton> createState() => _CustomButtonState();
+}
 
+class _CustomButtonState extends State<CustomButton> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -12,9 +22,17 @@ class CustomButton extends StatelessWidget {
       width: MediaQuery.of(context).size.width,
       margin: EdgeInsets.only(bottom: 16, left: 16, right: 16),
       child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () async {
+            await widget.onUpdate(
+                widget.status == "Accept"
+                    ? "accepted"
+                    : widget.status == "Ready"
+                        ? "ready"
+                        : "delivered",
+                widget.orderid);
+          },
           child: Text(
-            status,
+            widget.status,
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -25,9 +43,9 @@ class CustomButton extends StatelessWidget {
           ),
           style: ButtonStyle(
               backgroundColor:
-                  MaterialStateProperty.all<Color>(status == "Delivered"
+                  MaterialStateProperty.all<Color>(widget.status == "Delivered"
                       ? Color(0xFF008A05)
-                      : status == "Accept"
+                      : widget.status == "Accept"
                           ? Color(0xFFD33753)
                           : Color(0xFF222222)),
               shape: MaterialStateProperty.all<RoundedRectangleBorder>(
