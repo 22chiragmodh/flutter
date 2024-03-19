@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foodcafe/src/widgets/toggle.dart';
@@ -44,7 +45,7 @@ class ItemCard extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
                       image: DecorationImage(
-                        image: NetworkImage(imgUrl),
+                        image: CachedNetworkImageProvider(imgUrl),
                         fit: BoxFit.fill,
                       )),
                 ),
@@ -79,7 +80,7 @@ class ItemCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          "₹ 300",
+                          "₹ $price",
                           style: TextStyle(
                             color: Color(0xFF222222),
                             fontSize: 14,
@@ -95,8 +96,8 @@ class ItemCard extends StatelessWidget {
           ),
           Container(
               margin: EdgeInsets.only(top: 5),
-              width: 66,
-              height: 60,
+              width: 70,
+              height: 70,
               child: ToggleSwitch(
                 itemId: id,
                 status: isAvailable,

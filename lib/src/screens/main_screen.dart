@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_switch/flutter_switch.dart';
+import 'package:foodcafe/src/features/apiConstants.dart';
 import 'package:foodcafe/src/screens/feedback_screen.dart';
 import 'package:foodcafe/src/screens/history_screen.dart';
 import 'package:foodcafe/src/screens/home_screen.dart';
@@ -8,6 +11,7 @@ import 'package:foodcafe/src/screens/menu_screen.dart';
 import 'package:foodcafe/src/screens/order_screen.dart';
 import 'package:foodcafe/src/utils/color.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -19,6 +23,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   bool status = true;
   int _selectedIndex = 0;
+  bool restroStatus = false;
   bool isTranslatedToHindi = false;
 
   final List<Widget> pages = [
@@ -60,6 +65,58 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       isTranslatedToHindi = !isTranslatedToHindi;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getRestaurantStatus();
+  }
+
+  Future<void> getRestaurantStatus() async {
+    try {
+      final response = await http
+          .get(Uri.parse("${ApiConstants.baseUrl}/restaurant"), headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer ${ApiConstants.authToken}',
+      });
+
+      if (response.statusCode == 200) {
+        // Extract the "data" list from parsedJson
+        Map<String, dynamic> parsedJson = jsonDecode(response.body);
+        setState(() {
+          restroStatus = parsedJson['isOpen'];
+        });
+        print(restroStatus);
+
+        // setState(() {
+        //   isDataloading = false;
+        // });
+      }
+    } catch (e) {
+      return Future.error(e.toString());
+    }
+  }
+
+  Future<void> updateRestaurantStatus(bool updateStatus) async {
+    try {
+      final response = await http.put(
+          Uri.parse("${ApiConstants.baseUrl}/restaurant/status"),
+          headers: {
+            // "Content-Type": "application/json",
+            'Authorization': 'Bearer ${ApiConstants.authToken}',
+          },
+          body: {
+            "isOpen": "$updateStatus"
+          });
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Restro Status updated Successfully")));
+      }
+    } catch (e) {
+      return Future.error(e.toString());
+    }
   }
 
   @override
@@ -179,13 +236,14 @@ class _MainScreenState extends State<MainScreen> {
                     showOnOff: true,
                     valueFontSize: 14.0,
                     toggleSize: 40.0,
-                    value: status,
+                    value: restroStatus,
                     borderRadius: 30.0,
                     padding: 8.0,
                     // showOnOff: true,
-                    onToggle: (val) {
+                    onToggle: (val) async {
+                      await updateRestaurantStatus(val);
                       setState(() {
-                        status = val;
+                        restroStatus = val;
                       });
                     },
                   ),

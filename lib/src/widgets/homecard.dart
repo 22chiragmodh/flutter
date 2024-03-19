@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 
 class HomeCard extends StatelessWidget {
-  const HomeCard({super.key});
+  List<dynamic>? orderHistory;
+  HomeCard({super.key, this.orderHistory});
 
   @override
   Widget build(BuildContext context) {
+    double avg = 0.0;
+    print(orderHistory![0]);
+    if (orderHistory![0] == 0) {
+      avg = 0;
+    } else {
+      avg = orderHistory![1] / orderHistory![0];
+    }
     return SizedBox(
       width: 175,
       height: 100,
@@ -12,7 +20,7 @@ class HomeCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(
+          SizedBox(
             height: 45,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,7 +37,7 @@ class HomeCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '₹ 21000',
+                  "₹ ${orderHistory![1]}",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -48,7 +56,7 @@ class HomeCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 RichText(
-                  text: const TextSpan(
+                  text: TextSpan(
                     children: [
                       TextSpan(
                         text: 'Delivered orders: ',
@@ -61,7 +69,7 @@ class HomeCard extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: '15',
+                        text: '${orderHistory![0]!}',
                         style: TextStyle(
                           color: Color(0xFFEBEBEB),
                           fontSize: 14,
@@ -74,7 +82,7 @@ class HomeCard extends StatelessWidget {
                   ),
                 ),
                 RichText(
-                  text: const TextSpan(
+                  text: TextSpan(
                     children: [
                       TextSpan(
                         text: 'Average order value: ',
@@ -87,7 +95,7 @@ class HomeCard extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: '₹120',
+                        text: '₹ $avg',
                         style: TextStyle(
                           color: Color(0xFFEBEBEB),
                           fontSize: 14,

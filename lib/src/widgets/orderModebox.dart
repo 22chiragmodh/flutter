@@ -21,7 +21,7 @@ class OrderModeBox extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          orderMode,
+          orderMode == "dinein" ? "Dine In" : "Take away",
           style: TextStyle(
             color: Colors.white,
             fontSize: 14,

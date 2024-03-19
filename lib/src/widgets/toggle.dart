@@ -37,8 +37,8 @@ class _ToggleSwitchState extends State<ToggleSwitch> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 66,
-      height: 50,
+      width: 70,
+      height: 55,
       child: Column(
         children: [
           FlutterSwitch(
