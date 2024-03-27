@@ -50,7 +50,7 @@ class HomeCard extends StatelessWidget {
             ),
           ),
           SizedBox(
-            height: 40,
+            height: 48,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceAround,

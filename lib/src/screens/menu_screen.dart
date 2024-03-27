@@ -2,13 +2,16 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:expandable/expandable.dart';
+import 'package:flutter_switch/flutter_switch.dart';
 import 'package:foodcafe/src/features/apiConstants.dart';
 import 'package:foodcafe/src/models/menuModel.dart';
+import 'package:foodcafe/src/utils/color.dart';
 
 import 'package:foodcafe/src/widgets/itemcard.dart';
 import 'package:foodcafe/src/widgets/toggle.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
@@ -21,8 +24,13 @@ class _MenuScreenState extends State<MenuScreen> {
   bool isDataloading = true;
   List<MenuItem> menuList = [];
   List<String> categories = [];
+  bool categoryStatus = true;
   Map<String, List<MenuItem>> itemsByCategory = {};
+  Map<String, bool> categoryStatusMap = {};
+  ExpandableController? controller;
   Future<void> getMenu() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
     try {
       final response = await http
           .get(Uri.parse("${ApiConstants.baseUrl}/menu/restro"), headers: {
@@ -31,10 +39,15 @@ class _MenuScreenState extends State<MenuScreen> {
       });
       if (response.statusCode == 200) {
         List<dynamic> decodedList = json.decode(response.body);
+
         menuList = decodedList.map((menu) => MenuItem.fromJson(menu)).toList();
 
 // get all unique categories
         categories = getUniqueCategories(menuList);
+
+        for (var category in categories) {
+          categoryStatusMap[category] = prefs.getBool(category) ?? true;
+        }
 
 //seprate items basis on categories
         for (var category in categories) {
@@ -46,7 +59,7 @@ class _MenuScreenState extends State<MenuScreen> {
           isDataloading = false;
         });
       }
-      print(menuList);
+      // print(menuList);
     } catch (e) {
       return Future.error(e.toString());
     }
@@ -66,57 +79,37 @@ class _MenuScreenState extends State<MenuScreen> {
     getMenu();
   }
 
+  Future<void> updateCategoryMenu(
+      bool updateStatus, List<MenuItem> items, String category) async {
+    try {
+      for (var item in items) {
+        final response = await http.put(
+          Uri.parse("${ApiConstants.baseUrl}/menu/update-status/${item.id}"),
+          headers: {
+            'Authorization': 'Bearer ${ApiConstants.authToken}',
+          },
+          body: {"isAvailable": "$updateStatus"},
+        );
+
+        if (response.statusCode == 200) {
+          print("Success");
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          prefs.setBool(category, updateStatus);
+        }
+      }
+    } catch (e) {
+      return Future.error(e.toString());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Container(
-          //   margin: EdgeInsets.only(left: 16, right: 16, top: 16),
-          //   height: 50,
-          //   child: Row(
-          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //     children: [
-          //       Text(
-          //         "Non-Veg Menu",
-          //         style: TextStyle(
-          //           color: Colors.black,
-          //           fontSize: 18,
-          //           fontFamily: 'SF Pro',
-          //           fontWeight: FontWeight.w600,
-          //           height: 0,
-          //         ),
-          //       ),
-          //       ToggleSwitch(
-          //         status: true,
-          //       )
-          //     ],
-          //   ),
-          // ),
-          // isDataloading
-          //     ? Center(
-          //         child: SizedBox(
-          //             height: 15, width: 15, child: CircularProgressIndicator()))
-          //     : Container(
-          //         height: MediaQuery.of(context).size.height - 190,
-          //         // color: Colors.red,
-          //         child: ListView.builder(
-          //             itemCount: menuList.length,
-          //             itemBuilder: ((context, index) {
-          //               return ItemCard(
-          //                   isVeg: menuList[index].isVeg,
-          //                   isAvailable: menuList[index].isAvailable,
-          //                   imgUrl: menuList[index].photo,
-          //                   title: menuList[index].name.toString().tr,
-          //                   description: menuList[index].category,
-          //                   price: menuList[index].price,
-          //                   id: menuList[index].id);
-          //             })),
-          //       )
-
           isDataloading
-              ? Center(
+              ? const Center(
                   child: SizedBox(
                       height: 15,
                       width: 15,
@@ -129,7 +122,9 @@ class _MenuScreenState extends State<MenuScreen> {
                   itemBuilder: (context, index) {
                     final category = categories[index];
                     final items = itemsByCategory[category] ?? [];
+
                     return ExpandablePanel(
+                        controller: controller,
                         header: Container(
                           margin: EdgeInsets.only(left: 16, right: 16, top: 16),
                           height: 60,
@@ -141,7 +136,7 @@ class _MenuScreenState extends State<MenuScreen> {
                                 width: 200,
                                 child: Text(
                                   category,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.black,
                                     fontSize: 18,
                                     fontFamily: 'SF Pro',
@@ -151,9 +146,67 @@ class _MenuScreenState extends State<MenuScreen> {
                                 ),
                               ),
                               SizedBox(width: 30),
-                              ToggleSwitch(
-                                status: true,
-                              )
+
+                              // category toggle
+
+                              Container(
+                                width: 70,
+                                height: 55,
+                                child: Column(
+                                  children: [
+                                    FlutterSwitch(
+                                      activeIcon: Icon(
+                                        Icons.check,
+                                        color: MenuContainer.toogle_activecolor,
+                                      ),
+                                      width: 85.0,
+                                      height: 30,
+                                      activeColor:
+                                          MenuContainer.toogle_activecolor,
+                                      inactiveColor:
+                                          MenuContainer.toogle_inactivecolor,
+
+                                      showOnOff: false,
+                                      valueFontSize: 14.0,
+                                      toggleSize: 35.0,
+                                      value:
+                                          categoryStatusMap[category] ?? true,
+                                      borderRadius: 30.0,
+                                      padding: 8.0,
+                                      // showOnOff: true,
+                                      onToggle: (val) async {
+                                        setState(() {
+                                          categoryStatusMap[category] = val;
+                                        });
+                                        await updateCategoryMenu(
+                                            val, items, category);
+
+                                        // ScaffoldMessenger.of(context)
+                                        //     .showSnackBar(
+                                        //   SnackBar(
+                                        //       content: Text(
+                                        //           "Menu status updated Successfully")),
+                                        // );
+                                      },
+                                    ),
+                                    Container(
+                                      margin: EdgeInsets.only(top: 4),
+                                      child: Text(
+                                        categoryStatusMap[category] ?? true
+                                            ? 'Available'
+                                            : "Unavailable",
+                                        style: TextStyle(
+                                          color: Color(0xFF222222),
+                                          fontSize: 12,
+                                          fontFamily: 'SF Pro',
+                                          fontWeight: FontWeight.w400,
+                                          height: 0,
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),

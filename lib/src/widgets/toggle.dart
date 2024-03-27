@@ -26,8 +26,8 @@ class _ToggleSwitchState extends State<ToggleSwitch> {
             "isAvailable": "$updateStatus"
           });
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Menu updated Successfully")));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Menu Item status updated Successfully")));
       }
     } catch (e) {
       return Future.error(e.toString());

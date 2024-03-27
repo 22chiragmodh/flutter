@@ -69,7 +69,7 @@ class _OrdercardState extends State<Ordercard> {
       child: Column(
         children: [
           Container(
-            height: 45,
+            height: 48,
             // color: Colors.red,
             margin: EdgeInsets.all(16),
 
