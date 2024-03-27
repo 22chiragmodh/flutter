@@ -24,6 +24,7 @@ class _MenuScreenState extends State<MenuScreen> {
   bool isDataloading = true;
   List<MenuItem> menuList = [];
   List<String> categories = [];
+
   bool categoryStatus = true;
   Map<String, List<MenuItem>> itemsByCategory = {};
   Map<String, bool> categoryStatusMap = {};
@@ -97,6 +98,10 @@ class _MenuScreenState extends State<MenuScreen> {
           prefs.setBool(category, updateStatus);
         }
       }
+
+      setState(() {
+        getMenu();
+      });
     } catch (e) {
       return Future.error(e.toString());
     }
@@ -178,15 +183,14 @@ class _MenuScreenState extends State<MenuScreen> {
                                         setState(() {
                                           categoryStatusMap[category] = val;
                                         });
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                              content: Text(
+                                                  "Menu status updated Successfully")),
+                                        );
                                         await updateCategoryMenu(
                                             val, items, category);
-
-                                        // ScaffoldMessenger.of(context)
-                                        //     .showSnackBar(
-                                        //   SnackBar(
-                                        //       content: Text(
-                                        //           "Menu status updated Successfully")),
-                                        // );
                                       },
                                     ),
                                     Container(

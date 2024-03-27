@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:foodcafe/src/features/apiConstants.dart';
-import 'package:foodcafe/src/food.dart';
+
 import 'package:foodcafe/src/utils/color.dart';
-import 'package:foodcafe/src/widgets/homecard.dart';
+
 import 'package:foodcafe/src/widgets/ordercard.dart';
 import 'package:http/http.dart' as http;
 
@@ -130,69 +130,129 @@ class _HistoryScreenState extends State<HistoryScreen>
               } else {
                 List<Map<String, dynamic>> deliveredOrders = snapshot.data!;
 
+                //today order
+                DateTime now = DateTime.now();
+
+                List<Map<String, dynamic>> todayOrders =
+                    deliveredOrders.where((order) {
+                  DateTime placedAt = DateTime.parse(order['placedAt']);
+                  return placedAt.year == now.year &&
+                      placedAt.month == now.month &&
+                      placedAt.day == now.day;
+                }).toList();
+
+//yesterday order
+                DateTime yesterday = now.subtract(Duration(days: 1));
+                List<Map<String, dynamic>> yesterdayOrders =
+                    deliveredOrders.where((order) {
+                  DateTime placedAt = DateTime.parse(order['placedAt']);
+                  return placedAt.year == yesterday.year &&
+                      placedAt.month == yesterday.month &&
+                      placedAt.day == yesterday.day;
+                }).toList();
+
+//weekly order
+
+                DateTime startOfWeek = DateTime(now.year, now.month, now.day)
+                    .subtract(Duration(days: now.weekday - 1));
+                DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
+                List<Map<String, dynamic>> weeklyOrders =
+                    deliveredOrders.where((order) {
+                  DateTime placedAt = DateTime.parse(order['placedAt']);
+                  return placedAt.isAfter(startOfWeek) &&
+                      placedAt.isBefore(endOfWeek);
+                }).toList();
+
+                //monthy order
+
+                List<Map<String, dynamic>> monthlyOrders =
+                    deliveredOrders.where((order) {
+                  DateTime placedAt = DateTime.parse(order['placedAt']);
+                  return placedAt.year == now.year &&
+                      placedAt.month == now.month;
+                }).toList();
                 return Container(
                   // color: Colors.red,
                   height: MediaQuery.of(context).size.height - 220,
                   child: TabBarView(controller: _controller, children: [
-                    // today
+                    //today orders
 
-                    // Container(
-                    //   margin: EdgeInsets.symmetric(horizontal: 16),
-                    //   padding: EdgeInsets.symmetric(
-                    //       horizontal: 16, vertical: 24),
-                    //   height: 145,
-                    //   width: MediaQuery.of(context).size.width,
-                    //   clipBehavior: Clip.antiAlias,
-                    //   decoration: ShapeDecoration(
-                    //     gradient: LinearGradient(
-                    //       begin: Alignment(0.99, -0.16),
-                    //       end: Alignment(-0.99, 0.16),
-                    //       colors: [Color(0xFFCB3164), Color(0xFFC82E65)],
-                    //     ),
-                    //     shape: RoundedRectangleBorder(
-                    //       borderRadius: BorderRadius.circular(16),
-                    //     ),
-                    //     shadows: [
-                    //       BoxShadow(
-                    //         color: Color(0x1E000000),
-                    //         blurRadius: 16,
-                    //         offset: Offset(0, 6),
-                    //         spreadRadius: 0,
-                    //       )
-                    //     ],
-                    //   ),
-                    //   child: HomeCard(),
-                    // ),
-                    Container(
-                      margin: EdgeInsets.only(bottom: 16),
-                      height: MediaQuery.of(context).size.height,
-                      child: ListView.builder(
-                          itemCount: deliveredOrders.length,
-                          itemBuilder: (context, index) {
-                            return Ordercard(
-                              isHistory: true,
-                              status: "Accept",
-                              orderItemList: deliveredOrders[index],
-                            );
-                          }),
-                    ),
-                    // ListView.builder(
-                    //     shrinkWrap: true,
-                    //     physics: NeverScrollableScrollPhysics(),
-                    //     itemCount: Foods.foodList.length,
-                    //     itemBuilder: (context, index) {
-                    //       return Ordercard(
-                    //         isHistory: true,
-                    //         status: "Delivered",
-                    //       );
-                    //     }),
+                    todayOrders.isEmpty
+                        ? Center(
+                            child:
+                                SvgPicture.asset("assets/images/Empty-bro.svg"))
+                        : Container(
+                            margin: EdgeInsets.only(bottom: 16),
+                            height: MediaQuery.of(context).size.height,
+                            child: ListView.builder(
+                                itemCount: todayOrders.length,
+                                itemBuilder: (context, index) {
+                                  return Ordercard(
+                                    isHistory: true,
+                                    status: "Delivered",
+                                    orderItemList: todayOrders[index],
+                                  );
+                                }),
+                          ),
 
-                    Center(
-                        child: SvgPicture.asset("assets/images/Empty-bro.svg")),
-                    Center(
-                        child: SvgPicture.asset("assets/images/Empty-bro.svg")),
-                    Center(
-                        child: SvgPicture.asset("assets/images/Empty-bro.svg")),
+                    //yesterday orders
+
+                    yesterdayOrders.isEmpty
+                        ? Center(
+                            child:
+                                SvgPicture.asset("assets/images/Empty-bro.svg"))
+                        : Container(
+                            margin: EdgeInsets.only(bottom: 16),
+                            height: MediaQuery.of(context).size.height,
+                            child: ListView.builder(
+                                itemCount: yesterdayOrders.length,
+                                itemBuilder: (context, index) {
+                                  return Ordercard(
+                                    isHistory: true,
+                                    status: "Delivered",
+                                    orderItemList: yesterdayOrders[index],
+                                  );
+                                }),
+                          ),
+
+                    //weekly orders
+
+                    weeklyOrders.isEmpty
+                        ? Center(
+                            child:
+                                SvgPicture.asset("assets/images/Empty-bro.svg"))
+                        : Container(
+                            margin: EdgeInsets.only(bottom: 16),
+                            height: MediaQuery.of(context).size.height,
+                            child: ListView.builder(
+                                itemCount: weeklyOrders.length,
+                                itemBuilder: (context, index) {
+                                  return Ordercard(
+                                    isHistory: true,
+                                    status: "Delivered",
+                                    orderItemList: weeklyOrders[index],
+                                  );
+                                }),
+                          ),
+                    //monthly orders
+
+                    monthlyOrders.isEmpty
+                        ? Center(
+                            child:
+                                SvgPicture.asset("assets/images/Empty-bro.svg"))
+                        : Container(
+                            margin: EdgeInsets.only(bottom: 16),
+                            height: MediaQuery.of(context).size.height,
+                            child: ListView.builder(
+                                itemCount: deliveredOrders.length,
+                                itemBuilder: (context, index) {
+                                  return Ordercard(
+                                    isHistory: true,
+                                    status: "Delivered",
+                                    orderItemList: monthlyOrders[index],
+                                  );
+                                }),
+                          ),
                   ]),
                 );
               }
