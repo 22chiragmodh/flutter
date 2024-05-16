@@ -29,6 +29,7 @@ class _MenuScreenState extends State<MenuScreen> {
   Map<String, List<MenuItem>> itemsByCategory = {};
   Map<String, bool> categoryStatusMap = {};
   ExpandableController? controller;
+  TextEditingController searchController = TextEditingController();
   Future<void> getMenu() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -74,29 +75,44 @@ class _MenuScreenState extends State<MenuScreen> {
     return uniqueCategories.toList();
   }
 
-  @override
-  void initState() {
-    super.initState();
-    getMenu();
+  void onSearchTextChanged(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        // Reset the menu list when the search query is empty
+        itemsByCategory = Map.fromIterable(categories,
+            key: (category) => category,
+            value: (category) =>
+                menuList.where((item) => item.category == category).toList());
+      });
+    } else {
+      setState(() {
+        // Filter the menu list based on the search query
+        itemsByCategory = Map.fromIterable(categories,
+            key: (category) => category,
+            value: (category) => menuList
+                .where((item) =>
+                    item.category == category &&
+                    item.name.toLowerCase().contains(query.toLowerCase()))
+                .toList());
+      });
+    }
   }
 
-  Future<void> updateCategoryMenu(
-      bool updateStatus, List<MenuItem> items, String category) async {
+  Future<void> updateCategoryMenu(bool updateStatus, String category) async {
     try {
-      for (var item in items) {
-        final response = await http.put(
-          Uri.parse("${ApiConstants.baseUrl}/menu/update-status/${item.id}"),
-          headers: {
-            'Authorization': 'Bearer ${ApiConstants.authToken}',
-          },
-          body: {"isAvailable": "$updateStatus"},
-        );
+      final response = await http.put(
+        Uri.parse(
+            "${ApiConstants.baseUrl}/menu/update-category-status/$category"),
+        headers: {
+          'Authorization': 'Bearer ${ApiConstants.authToken}',
+        },
+        body: {"isAvailable": "$updateStatus"},
+      );
 
-        if (response.statusCode == 200) {
-          print("Success");
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          prefs.setBool(category, updateStatus);
-        }
+      if (response.statusCode == 200) {
+        print("Success $category");
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setBool(category, updateStatus);
       }
 
       setState(() {
@@ -108,11 +124,31 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    getMenu();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: searchController,
+              onChanged: onSearchTextChanged,
+              decoration: InputDecoration(
+                hintText: 'Search Menu',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
+            ),
+          ),
           isDataloading
               ? const Center(
                   child: SizedBox(
@@ -127,111 +163,127 @@ class _MenuScreenState extends State<MenuScreen> {
                   itemBuilder: (context, index) {
                     final category = categories[index];
                     final items = itemsByCategory[category] ?? [];
+                    final filteredItems = items
+                        .where((item) => item.name
+                            .toLowerCase()
+                            .contains(searchController.text.toLowerCase()))
+                        .toList();
 
-                    return ExpandablePanel(
-                        controller: controller,
-                        header: Container(
-                          margin: EdgeInsets.only(left: 16, right: 16, top: 16),
-                          height: 60,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: 200,
-                                child: Text(
-                                  category,
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 18,
-                                    fontFamily: 'SF Pro',
-                                    fontWeight: FontWeight.w600,
-                                    height: 0,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 30),
-
-                              // category toggle
-
-                              Container(
-                                width: 70,
-                                height: 55,
-                                child: Column(
-                                  children: [
-                                    FlutterSwitch(
-                                      activeIcon: Icon(
-                                        Icons.check,
-                                        color: MenuContainer.toogle_activecolor,
-                                      ),
-                                      width: 85.0,
-                                      height: 30,
-                                      activeColor:
-                                          MenuContainer.toogle_activecolor,
-                                      inactiveColor:
-                                          MenuContainer.toogle_inactivecolor,
-
-                                      showOnOff: false,
-                                      valueFontSize: 14.0,
-                                      toggleSize: 35.0,
-                                      value:
-                                          categoryStatusMap[category] ?? true,
-                                      borderRadius: 30.0,
-                                      padding: 8.0,
-                                      // showOnOff: true,
-                                      onToggle: (val) async {
-                                        setState(() {
-                                          categoryStatusMap[category] = val;
-                                        });
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                              content: Text(
-                                                  "Menu status updated Successfully")),
-                                        );
-                                        await updateCategoryMenu(
-                                            val, items, category);
-                                      },
-                                    ),
-                                    Container(
-                                      margin: EdgeInsets.only(top: 4),
-                                      child: Text(
-                                        categoryStatusMap[category] ?? true
-                                            ? 'Available'
-                                            : "Unavailable",
-                                        style: TextStyle(
-                                          color: Color(0xFF222222),
-                                          fontSize: 12,
-                                          fontFamily: 'SF Pro',
-                                          fontWeight: FontWeight.w400,
-                                          height: 0,
+                    return filteredItems.isEmpty
+                        ? SizedBox
+                            .shrink() // Hide the category if no items match the search
+                        : Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ExpandablePanel(
+                                controller: controller,
+                                header: Container(
+                                  margin: EdgeInsets.only(left: 16, right: 16),
+                                  height: 50,
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      SizedBox(
+                                        width: 200,
+                                        child: Text(
+                                          category,
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 18,
+                                            fontFamily: 'SF Pro',
+                                            fontWeight: FontWeight.w600,
+                                            height: 0,
+                                          ),
                                         ),
                                       ),
-                                    )
-                                  ],
+                                      // SizedBox(width: 30),
+
+                                      // category toggle
+
+                                      Container(
+                                        width: 70,
+                                        height: 55,
+                                        child: Column(
+                                          children: [
+                                            FlutterSwitch(
+                                              activeIcon: Icon(
+                                                Icons.check,
+                                                color: MenuContainer
+                                                    .toogle_activecolor,
+                                              ),
+                                              width: 85.0,
+                                              height: 30,
+                                              activeColor: MenuContainer
+                                                  .toogle_activecolor,
+                                              inactiveColor: MenuContainer
+                                                  .toogle_inactivecolor,
+
+                                              showOnOff: false,
+                                              valueFontSize: 14.0,
+                                              toggleSize: 35.0,
+                                              value:
+                                                  categoryStatusMap[category] ??
+                                                      true,
+                                              borderRadius: 30.0,
+                                              padding: 8.0,
+                                              // showOnOff: true,
+                                              onToggle: (val) async {
+                                                setState(() {
+                                                  categoryStatusMap[category] =
+                                                      val;
+                                                });
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                      content: Text(
+                                                          "Menu status updated Successfully")),
+                                                );
+                                                await updateCategoryMenu(
+                                                    val, category);
+                                              },
+                                            ),
+                                            Container(
+                                              margin: EdgeInsets.only(top: 4),
+                                              child: Text(
+                                                categoryStatusMap[category] ??
+                                                        true
+                                                    ? 'Available'
+                                                    : "Unavailable",
+                                                style: TextStyle(
+                                                  color: Color(0xFF222222),
+                                                  fontSize: 12,
+                                                  fontFamily: 'SF Pro',
+                                                  fontWeight: FontWeight.w400,
+                                                  height: 0,
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        collapsed: const Text(""),
-                        expanded: SingleChildScrollView(
-                            child: ListView.builder(
-                                physics: NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                scrollDirection: Axis.vertical,
-                                itemCount: items.length,
-                                itemBuilder: (context, innerIndex) {
-                                  final item = items[innerIndex];
-                                  return ItemCard(
-                                      isVeg: item.isVeg,
-                                      isAvailable: item.isAvailable,
-                                      imgUrl: item.photo,
-                                      title: item.name.toString().tr,
-                                      description: item.category,
-                                      price: item.price,
-                                      id: item.id);
-                                })));
+                                collapsed: const Text(""),
+                                expanded: SingleChildScrollView(
+                                    child: ListView.builder(
+                                        physics: NeverScrollableScrollPhysics(),
+                                        shrinkWrap: true,
+                                        scrollDirection: Axis.vertical,
+                                        itemCount: items.length,
+                                        itemBuilder: (context, innerIndex) {
+                                          final item = items[innerIndex];
+                                          return ItemCard(
+                                              isVeg: item.isVeg,
+                                              isAvailable: item.isAvailable,
+                                              imgUrl: item.photo,
+                                              title: item.name.toString().tr,
+                                              description: item.category,
+                                              price: item.price,
+                                              id: item.id);
+                                        }))),
+                          );
                   })
         ],
       ),

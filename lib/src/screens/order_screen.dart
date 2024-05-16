@@ -239,7 +239,7 @@ class _OrdersScreenState extends State<OrdersScreen>
         ),
         Container(
           // color: Colors.red,
-          height: MediaQuery.of(context).size.height - 220,
+          height: MediaQuery.of(context).size.height - 230,
           child: TabBarView(controller: _controller, children: [
             FutureBuilder(
                 future: getOrder(status: "received"),

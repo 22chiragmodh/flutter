@@ -25,6 +25,7 @@ class ItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 85,
+      width: MediaQuery.of(context).size.width,
       // color: Colors.green,
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
@@ -33,7 +34,7 @@ class ItemCard extends StatelessWidget {
         children: [
           Container(
             // color: Colors.yellow,
-            width: 258,
+            width: 260,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +97,7 @@ class ItemCard extends StatelessWidget {
           ),
           Container(
               margin: EdgeInsets.only(top: 5),
-              width: 70,
+              width: 64,
               height: 70,
               child: ToggleSwitch(
                 itemId: id,
